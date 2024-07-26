@@ -13,6 +13,7 @@ from scipy.integrate import solve_ivp
 # User-defined Libraries
 import planetary_data   as pd
 import orbit_calcs      as oc
+import plotting_tools   as pt
 
 def null_config():
     return {
@@ -88,3 +89,6 @@ class Spacecraft:
         self.states  = self.ode_sol.y.T
         self.times   = self.ode_sol.t
         self.n_steps = self.states.shape[ 0 ]
+
+    def plot3( self, label_name, color ):
+        pt.plot_3d( self.states[ :, :3], self.cb[ 'radius' ], plt_label = label_name, traj_color = color )
