@@ -5,3 +5,4 @@ __pycache__/
 
 # Ignore texture maps (for now)
 *.jpg
+*.gif
