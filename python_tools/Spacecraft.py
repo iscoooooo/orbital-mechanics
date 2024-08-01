@@ -27,6 +27,8 @@ def null_config():
         'propagate'  : True
     }
 
+REFERENCE_TIME = '2000-01-01T07:00:00'
+
 class Spacecraft:
 
     def __init__( self, config ):
@@ -51,6 +53,8 @@ class Spacecraft:
 
         if self.config[ 'propagate' ]:
             self.propagate_orbit()
+
+        self.latlons_calculated = False
 
     def diffy_q( self, t, states):
 
@@ -90,5 +94,15 @@ class Spacecraft:
         self.times   = self.ode_sol.t
         self.n_steps = self.states.shape[ 0 ]
 
+    def calc_latlons( self ):
+        self.latlons = oc.cart2lat( self.states[ :, :3], self.times, REFERENCE_TIME )
+        self.latlons_calculated = True
+
     def plot3( self, label_name, color ):
         pt.plot_3d( self.states[ :, :3], self.cb[ 'radius' ], plt_label = label_name, traj_color = color )
+
+    def plot_groundtrack( self ):
+        if not self.latlons_calculated:
+            self.calc_latlons()
+        
+        pt.plot_groundtracks( self.latlons )
