@@ -1,20 +1,16 @@
 from Spacecraft     import Spacecraft as SC
 from planetary_data import earth
-import matplotlib.pyplot as plt
 import numpy as np
-import math             as m
-import csv
-import os
 
 ER = earth[ 'radius' ]
 
 # Initial Conditions
-sma   = 26500 # Semi-major axis
-e     = 0.73                      # Eccentricity
-i     = 63.4 * (np.pi/180)           # Inclination
-raan  = 45 * (np.pi/180)                        # Right Ascension of Ascending Node
-aop   = 270 * (np.pi/180)           # Argument of perigee
-ta    = 0                          # True Anomaly
+sma   = 26500              # Semi-major axis
+e     = 0.73               # Eccentricity
+i     = 63.4 * (np.pi/180) # Inclination
+raan  = 45 * (np.pi/180)   # Right Ascension of Ascending Node
+aop   = 270 * (np.pi/180)  # Argument of perigee
+ta    = 0                  # True Anomaly
 
 # Construct coe array 
 coes = [ sma, e, i, raan, aop, ta ]
