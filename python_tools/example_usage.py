@@ -1,26 +1,32 @@
 from Spacecraft     import Spacecraft as SC
 from planetary_data import earth
+import matplotlib.pyplot as plt
+import numpy as np
 import math             as m
+import csv
+import os
+
+ER = earth[ 'radius' ]
 
 # Initial Conditions
-sma   = earth[ 'radius' ] + 5000 # Semi-major axis
-e     = 0                          # Eccentricity
-i     = 98.43*(m.pi/180)           # Inclination
-raan  = 0                          # Right Ascension of Ascending Node
-omega = 0                          # Argument of perigee
+sma   = 26500 # Semi-major axis
+e     = 0.73                      # Eccentricity
+i     = 63.4 * (np.pi/180)           # Inclination
+raan  = 45 * (np.pi/180)                        # Right Ascension of Ascending Node
+aop   = 270 * (np.pi/180)           # Argument of perigee
 ta    = 0                          # True Anomaly
 
 # Construct coe array 
-coes = [ sma, e, i, raan, omega, ta ]
+coes = [ sma, e, i, raan, aop, ta ]
 
 # Create an instance of the 'Spacecraft' class
 sc = SC({
     'cb'    : earth,
     'coes'  : coes,
-    'tspan' : '1',
-    'atol'  : 1e-9,
-    'rtol'  : 1e-9
+    'tspan' : '2',
+    'atol'  : 1e-6,
+    'rtol'  : 1e-6
 })
 
-# Show 3D plot
-sc.plot3( 'Molniya', 'b' )
+# Groundtracks
+sc.plot_groundtrack()
