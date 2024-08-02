@@ -17,12 +17,18 @@ d2r = 1 / r2d
 sec2day = 1 / 3600 / 24
 
 
-def sv_from_coe( coe, mu ):
+def sv_from_coe( coe, mu, deg = True ):
     '''
     Returns state vector from the classical orbital elements
     '''
     # get states
     sma, ecc, incl, raan, aop, ta = coe
+
+    if deg == True:
+        incl *= np.pi/180
+        raan *= np.pi/180
+        aop  *= np.pi/180
+        ta   *= np.pi/180
 
     # determine position and velocity vector in perifocal frame
     r_p = sma * ( 1 - ecc**2) / ( 1 + ecc * np.cos(ta) ) *\
