@@ -53,16 +53,16 @@ def plot_3d( positions, planet_radius, plt_label = 'orbit', traj_color = 'red', 
 
 def plot_groundtracks( coords ):
     # List to hold latitude and longitude data
-    latitudes = []
-    longitudes = []
+    coast_latitudes = []
+    coast_longitudes = []
 
-    # Read the csv file
+    # Load Earth coastlines
     with open( EARTH_COASTLINES, newline='') as csvfile:
         csvreader = csv.reader(csvfile)
         for row in csvreader:
             longitude, latitude = map(float, row)
-            longitudes.append(longitude)
-            latitudes.append(latitude)
+            coast_longitudes.append(longitude)
+            coast_latitudes.append(latitude)
 
     # Set figure size
     fig = plt.figure(figsize=(18, 9))
@@ -76,7 +76,7 @@ def plot_groundtracks( coords ):
     for lon, lat in coords[1:]:
         if abs(lon - prev_lon) > 180:
             # Detected a wrap-around, plot current segment
-            ax.plot(segment_lon, np.array(segment_lat), 'b')  # Use a fixed color 'b' (blue)
+            ax.plot(segment_lon, np.array(segment_lat))  # Use a fixed color 'b' (blue)
             # Start a new segment
             segment_lat = [lat]
             segment_lon = [lon]
@@ -87,14 +87,14 @@ def plot_groundtracks( coords ):
         prev_lon = lon
 
     # Plot the last segment
-    ax.plot(segment_lon, np.array(segment_lat), 'b')  # Use a fixed color 'b' (blue)
+    ax.plot(segment_lon, np.array(segment_lat))  # Use a fixed color 'b' (blue)
 
     # Mark start and end points
-    ax.scatter(coords[0, 0], -coords[0, 1], color='g', s=100, label='Start')
-    ax.scatter(coords[-1, 0], -coords[-1, 1], color='r', s=100, label='End')
+    ax.scatter(coords[0, 0], coords[0, 1], color='g', s=100, label='Start')
+    ax.scatter(coords[-1, 0], coords[-1, 1], color='r', s=100, label='End')
 
     # Plot coastlines
-    ax.scatter(longitudes, latitudes, s=0.1, color='m')
+    ax.scatter(coast_longitudes, coast_latitudes, s=0.1, color='m')
 
     # Set axes limits
     ax.set_xlim((-180, 180))
