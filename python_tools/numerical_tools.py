@@ -44,3 +44,9 @@ def R3(angle, deg = False):
                 [ -np.sin(angle),  np.cos(angle),  0 ],
                 [        0,             0,         1 ]
         ])
+
+def norm( vec ):
+        '''
+        Returns norm of input vector
+        '''
+        return np.linalg.norm( vec )
