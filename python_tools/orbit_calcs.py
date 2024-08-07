@@ -11,6 +11,8 @@ import numpy as np
 
 # Orbital-Mechanics Libraries
 import numerical_tools as nt
+from numerical_tools import norm
+import planetary_data as pd
 
 r2d = 180 / np.pi
 d2r = 1 / r2d
@@ -49,6 +51,101 @@ def sv_from_coe( coe, mu, deg = True ):
 
     return sv
 
+def coe_from_sv( state, args = {} ):
+    '''
+    Returns the classical orbital elements when provided the state vector 
+    '''
+    _args = {
+        'mu'         : pd.earth[ 'mu' ],
+        'deg'        : True,
+        'print_coes' : False
+    }
+
+    for key in args.keys():
+        _args[ key ] = args[ key ]
+
+
+    small = 1e-12
+
+    r      = state[ :3 ]
+    v      = state[ 3:6 ]
+    norm_r = norm( r )
+    norm_v = norm( v )
+
+    h      = np.cross( r, v )
+    norm_h = norm( h )
+
+    if norm_h >= small:
+        n      = np.array( [ -h[ 1 ], h[ 0 ], 0.0 ] )
+        norm_n = norm( n )
+        c1     = norm_v**2 - _args[ 'mu' ] / norm_r
+        rdotv  = np.dot( r, v )
+        e      = ( c1 * r - rdotv * v ) / _args[ 'mu' ]
+        norm_e = norm(e)
+
+        sme = ( norm_v**2 * 0.5 ) - ( _args[ 'mu' ] / norm_r )
+        if abs(sme) > small:
+            a = -_args[ 'mu' ] / ( 2.0 * sme )
+        else:
+            a = np.inf
+
+        p = norm_h**2 / _args[ 'mu' ]
+
+        hk = h[2] / norm_h
+        incl = np.arccos(hk)
+
+        if norm_n > small:
+            temp = n[0] / norm_n
+            temp = np.clip(temp, -1.0, 1.0)
+            raan = np.arccos(temp)
+            if n[1] < 0.0:
+                raan = 2 * np.pi - raan
+        else:
+            raan = 0
+
+        if norm_e > small:
+            temp = np.dot(n, e) / (norm_n * norm_e)
+            temp = np.clip(temp, -1.0, 1.0)
+            aop  = np.arccos(temp)
+            if e[2] < 0.0:
+                aop = 2 * np.pi - aop
+        else:
+            aop = 0
+
+        if norm_e > small:
+            temp = np.dot(e, r) / (norm_e * norm_r)
+            temp = np.clip(temp, -1.0, 1.0)
+            ta   = np.arccos(temp)
+            if rdotv < 0.0:
+                ta = 2 * np.pi - ta
+        else:
+            ta = 0
+
+        #------ Include special cases later
+
+        # Radians to degrees
+        if _args[ 'deg' ] == True:
+            incl    *= r2d
+            raan *= r2d
+            aop  *= r2d
+            ta   *= r2d
+        
+        # Print coes
+        if _args[ 'print_coes' ]:
+            print( 'a'   , a    )
+            print( 'e'   , norm_e    )
+            print( 'i'   , incl    )
+            print( 'RAAN', raan )
+            print( 'AOP' , aop  )
+            print( 'TA'  , ta   )
+            print()
+
+
+    else:
+        a = norm_e = incl = raan = aop = ta = None
+
+    return [ a, norm_e, incl, raan, aop, ta ] 
+
 def period_from_sv( state, mu ):
     '''
     Returns orbital period (sec) when given the state vector
@@ -60,8 +157,8 @@ def period_from_sv( state, mu ):
     v = state[ 3:6 ]
 
     # get norm r and v
-    rnorm = np.linalg.norm( r )
-    vnorm = np.linalg.norm( v )
+    rnorm = norm( r )
+    vnorm = norm( v )
 
     # vis-visa eq.
     e = vnorm**2 / 2 - mu / rnorm
@@ -163,7 +260,12 @@ def get_gst():
 
     return gst
 
-if __name__ == "__main__":
-    ra, dec = ra_and_dec_from_r( [6524.834, 6862.875, 6448.296], deg = True)
-    print(ra)
-    print(dec)
+
+if __name__ == '__main__':
+    state = np.array ( [ -6045, -3490, 2500, -3.457, 6.618, 2.533 ] )
+    a, e, i, raan, aop, ta = coe_from_sv(
+        state, 
+        args = {
+            'print_coes' : True
+        }
+    )
