@@ -6,18 +6,33 @@ import os
 import csv
 import numpy                as     np 
 import matplotlib.pyplot    as     plt
-from   mpl_toolkits.mplot3d import Axes3D
-from   matplotlib.image     import imread
-from   PIL                  import Image
 from   matplotlib           import cm
-
-
 plt.style.use( 'dark_background' )
+
+time_handler = {
+	'seconds': { 'coeff': 1.0,        'xlabel': 'Time (seconds)' },
+	'hours'  : { 'coeff': 3600.0,     'xlabel': 'Time (hours)'   },
+	'days'   : { 'coeff': 86400.0,    'xlabel': 'Time (days)'    },
+	'years'  : { 'coeff': 31536000.0, 'xlabel': 'Time (years)'   }
+}
+
+dist_handler = {
+	'km'    : 1.0,
+	'ER'    : 1 / 6378.0,
+	'JR'    : 1 / 71490.0,
+	'AU'    : 6.68459e-9,
+	r'$\dfrac{km}{s}$': 1.0
+}
+
+COLORS = [ 
+	'm', 'deeppink', 'chartreuse', 'w', 'springgreen', 'peachpuff',
+	'white', 'lightpink', 'royalblue', 'lime', 'aqua' ] * 100
 
 EARTH_COASTLINES = os.path.join(
     os.path.dirname( __file__ ),
     os.path.join( '..', 'data', 'earth_coastlines.csv' )
 )
+
 
 def plot_3d( positions, planet_radius, plt_label = 'orbit', traj_color = 'red', figsize = ( 10, 10 ) ):
 
@@ -111,3 +126,108 @@ def plot_groundtracks( coords ):
 
     plt.legend()
     plt.show()
+
+def plot_coes( times, coes, args = {} ):
+    _args = {
+        'figsize'   : ( 18, 9 ),
+        'labels'    : [ '' ] * len( coes ),
+        'lws'       : 1,
+        'color'     : 'm',
+        'grid'      : True,
+        'title'     : 'COEs',
+        'title_fs'  : 25,
+        'wspace'    : 0.3,
+        'time_unit' : 'seconds',
+        'show'      : False,
+        'filename'  : False,
+        'dpi'       : 300,
+        'legend'    : True
+    }
+
+    for key in args.keys():
+        _args[ key ] = args[ key ]
+
+    _args[ 'xlabel' ]     = time_handler[ _args[ 'time_unit' ] ][ 'xlabel' ]
+    _args[ 'time_coeff' ] = time_handler[ _args[ 'time_unit' ] ][ 'coeff'  ]
+
+    times = times / _args[ 'time_coeff' ]
+
+    fig, ( ( ax0, ax1, ax2 ), ( ax3, ax4, ax5 ) ) = plt.subplots(
+        2, 3,
+        figsize = _args[ 'figsize' ]
+    )
+
+    fig.suptitle( _args[ 'title' ], fontsize = _args[ 'title_fs'] )
+
+    # True anomaly
+    n = 0
+    for coe in coes:
+        ax0.plot(
+            times, coe[ :, 5 ], _args[ 'color' ], label = _args[ 'labels' ][ n ] 
+        )
+        n += 1
+    ax0.set_ylabel( 'True Anomaly $(deg)$' )
+    ax0.grid( linestyle = 'dotted' )
+
+    # semi-major axis
+    n = 0
+    for coe in coes:
+        ax3.plot(
+            times, coe[ :, 0 ], _args[ 'color' ], label = _args[ 'labels' ][ n ] 
+        )
+        n += 1
+    ax3.set_ylabel( 'Semi-Major Axis $(km)$' )
+    ax3.set_xlabel( _args[ 'xlabel' ] )
+    ax3.grid( linestyle = 'dotted' )
+
+    # eccentricity
+    n = 0
+    for coe in coes:
+        ax1.plot(
+            times, coe[ :, 1 ], _args[ 'color' ], label = _args[ 'labels' ][ n ] 
+        )
+        n += 1
+    ax1.set_ylabel( 'Eccentricity' )
+    ax1.grid( linestyle = 'dotted' )
+
+    # inclination
+    n = 0
+    for coe in coes:
+        ax4.plot(
+            times, coe[ :, 2 ], _args[ 'color' ], label = _args[ 'labels' ][ n ] 
+        )
+        n += 1
+    ax4.set_ylabel( 'Inclination $(deg)$' )
+    ax4.set_xlabel( _args[ 'xlabel' ] )
+    ax4.grid( linestyle = 'dotted' )
+
+    # argument of periapsis
+    n = 0
+    for coe in coes:
+        ax2.plot(
+            times, coe[ :, 4 ], _args[ 'color' ], label = _args[ 'labels' ][ n ] 
+        )
+        n += 1
+    ax2.set_ylabel( 'Argument of Periapsis $(deg)$' )
+    ax2.grid( linestyle = 'dotted' )
+
+    # right ascension of ascending node
+    n = 0
+    for coe in coes:
+        ax5.plot(
+            times, coe[ :, 3 ], _args[ 'color' ], label = _args[ 'labels' ][ n ] 
+        )
+        n += 1
+    ax5.set_ylabel( 'RAAN $(deg)$' )
+    ax5.set_xlabel( _args[ 'xlabel' ] )
+    ax5.grid( linestyle = 'dotted' )
+
+    plt.subplots_adjust( wspace = _args[ 'wspace' ] )
+
+    if _args[ 'show' ]:
+        plt.show()
+    
+    if _args[ 'filename' ]:
+        plt.savefig( _args[ 'filename' ], dpi = _args[ 'dpi' ] )
+
+    plt.close()
