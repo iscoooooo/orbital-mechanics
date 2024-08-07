@@ -52,17 +52,16 @@ class Spacecraft:
             self.config[ 'tspan' ] = float( self.config[ 'tspan' ] ) * \
                     oc.period_from_sv( self.config[ 'state' ], self.cb[ 'mu' ] )
 
-        # Perturbation assignment
-        self.orbit_perts = self.config[ 'orbit_perts' ]
-
         # Set initial status for calculations
         self.latlons_calculated = False
+        self.coes_calculated    = False
 
         # Set initial states
         self.state0       = np.zeros( 6 )
         self.state0[ :6 ] = self.config[ 'state' ]
 
-        # Assign orbit perturbation functions to a 
+        # Assign orbit perturbation functions
+        self.orbit_perts = self.config[ 'orbit_perts' ]
         self.assign_orbit_perturbations_functions()
 
         # Propagates the orbit
@@ -107,10 +106,11 @@ class Spacecraft:
 
         self.orbit_perts_funcs = []
 
-        for key in self.config[ 'orbit_perts' ]:
-            self.orbit_perts_funcs.append(
-                self.orbit_perts_funcs_map[ key ]
-            )
+        for key, value in self.config[ 'orbit_perts' ].items():
+            if value: # Only add the function if the perturbation is set to True
+                self.orbit_perts_funcs.append(
+                    self.orbit_perts_funcs_map[ key ]
+                )
 
     def propagate_orbit( self ):
 
@@ -128,9 +128,24 @@ class Spacecraft:
         self.states  = self.ode_sol.y.T
         self.times   = self.ode_sol.t
         self.n_steps = self.states.shape[ 0 ]
+    
+    def calc_coes ( self ):
+        self.coes = np.zeros( ( self.n_steps, 6 ) )
+
+        for n in range( self.n_steps ):
+            self.coes[ n, : ] = oc.coe_from_sv(
+                self.states[ n, : ],
+                args = {
+                    'mu'  : self.cb[ 'mu' ],
+                    'deg' : True
+                } 
+            )
+        
+        self.coes_rel        = self.coes[ : ] - self.coes[ 0, : ]
+        self.coes_calculated = True
 
     def calc_latlons( self ):
-        self.latlons = oc.cart2lat( self.states[ :, :3], self.times, REFERENCE_TIME )
+        self.latlons            = oc.cart2lat( self.states[ :, :3], self.times, REFERENCE_TIME )
         self.latlons_calculated = True
     
     def calc_J2( self, state ):
@@ -157,6 +172,12 @@ class Spacecraft:
 
     def calc_third_body_perts( self ):
         pass
+
+    def plot_coes( self, args = { 'show' : True }, step = 1 ):
+        if not self.coes_calculated:
+            self.calc_coes()
+
+        pt.plot_coes( self.times[ ::step ], [ self.coes[ ::step ] ], args )
 
     def plot3( self, label_name, color ):
         pt.plot_3d( self.states[ :, :3], self.cb[ 'radius' ], plt_label = label_name, traj_color = color )
