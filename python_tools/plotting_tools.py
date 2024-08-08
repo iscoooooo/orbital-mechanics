@@ -40,13 +40,13 @@ def plot_3d( positions, planet_radius, plt_label = 'orbit', traj_color = 'red', 
     fig = plt.figure( figsize = figsize )
     ax  = fig.add_subplot( 111, projection = '3d' )
 
-    # Draw the planet
-    u, v = np.mgrid[ 0:2*np.pi:100j, 0:np.pi:100j  ]
-    x = planet_radius * np.cos( u ) * np.sin( v ) 
-    y = planet_radius * np.sin( u ) * np.sin( v ) 
-    z = planet_radius * np.cos( v )
+    # Plot central body
+    _u, _v = np.mgrid[ 0:2*np.pi:100j, 0:np.pi:100j  ]
+    _x = planet_radius * np.cos( _u ) * np.sin( _v ) 
+    _y = planet_radius * np.sin( _u ) * np.sin( _v ) 
+    _z = planet_radius * np.cos( _v )
 
-    ax.plot_surface( x, y, z, rstride = 5, cstride = 5, cmap = cm.Blues, zorder = 0 )
+    ax.plot_surface( _x, _y, _z, rstride = 5, cstride = 5, cmap = cm.Blues, zorder = 0 )
 
     # Plot trajectory 
     ax.plot(
@@ -57,8 +57,29 @@ def plot_3d( positions, planet_radius, plt_label = 'orbit', traj_color = 'red', 
         color = traj_color
     )
 
-    # Set an equal aspect ratio
-    ax.set_aspect( 'equal' )
+    # Plot the x, y, z vectors
+    l = planet_radius * 2
+
+    x, y, z = [ [ 0, 0, 0 ], [ 0, 0, 0 ], [ 0, 0, 0 ] ]
+    u, v, w = [ [ l, 0, 0 ], [ 0, l, 0 ], [ 0, 0, l ] ]
+
+    ax.quiver( x, y, z, u, v, w, color = 'k')
+
+    # Set axes limits
+    max_val = np.max( np.abs( positions ) )
+
+    ax.set_xlim( [ -max_val, max_val ] )
+    ax.set_ylim( [ -max_val, max_val ] )
+    ax.set_zlim( [ -max_val, max_val ] )
+
+    # Set axes labels
+    ax.set_xlabel( 'X $(km)$' )
+    ax.set_ylabel( 'Y $(km)$' )
+    ax.set_zlabel( 'Z $(km)$' )
+
+    # Set aspect ratio
+    ax.set_box_aspect( [ 1, 1, 1 ] )
+    ax.set_aspect( 'auto' )
 
     if plt_label:
         ax.legend()
