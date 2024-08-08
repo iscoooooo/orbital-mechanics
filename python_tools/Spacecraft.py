@@ -179,7 +179,7 @@ class Spacecraft:
 
         pt.plot_coes( self.times[ ::step ], [ self.coes[ ::step ] ], args )
 
-    def plot3( self, label_name, color ):
+    def plot_3d( self, label_name, color ):
         pt.plot_3d( self.states[ :, :3], self.cb[ 'radius' ], plt_label = label_name, traj_color = color )
 
     def plot_groundtrack( self ):
