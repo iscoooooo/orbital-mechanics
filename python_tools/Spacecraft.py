@@ -191,7 +191,10 @@ class Spacecraft:
     def plot_states( self, args = { 'show' : True} ):
         pt.plot_states( self.times, self.states, args )
 
-    def plot_velocities( self, args = { 'show' : True } ):
+    def plot_positions( self, args = { 'show' : True, 'time_unit' : 'hours' } ):
+        pt.plot_pos( self.times, self.states[ :, :3 ], args )
+
+    def plot_velocities( self, args = { 'show' : True, 'time_unit' : 'hours' } ):
         pt.plot_velocities( self.times, self.states[ :, 3: ], args )
 
     def plot_groundtrack( self ):
