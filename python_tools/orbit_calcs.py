@@ -198,7 +198,7 @@ def cart2lat( r_ECI, times, reference_time = '2000-01-01T00:00:00' ):
     for step in range( steps ):
         # Compute the rotation angle based on Earth's rotation rate
         theta = omega_earth * times[ step ]
-        theta = theta % 360 # ensure the angle is within [0,2*pi] rads
+        theta = theta % 360 # ensure the angle is within [0,360] deg
 
         # Get rotation matrix (rotation about the z-axis)
         R = nt.R3( theta * d2r )
