@@ -53,8 +53,9 @@ class Spacecraft:
                     oc.period_from_sv( self.config[ 'state' ], self.cb[ 'mu' ] )
 
         # Set initial status for calculations
-        self.latlons_calculated = False
-        self.coes_calculated    = False
+        self.altitudes_calculated = False
+        self.latlons_calculated   = False
+        self.coes_calculated      = False
 
         # Set initial states
         self.state0       = np.zeros( 6 )
@@ -128,6 +129,10 @@ class Spacecraft:
         self.states  = self.ode_sol.y.T
         self.times   = self.ode_sol.t
         self.n_steps = self.states.shape[ 0 ]
+
+    def calc_altitudes( self ):
+        self.altitudes = np.linalg.norm( self.states[ :, :3], axis = 1 ) - self.cb[ 'radius' ]
+        self.altitudes_calculated = True
     
     def calc_coes ( self ):
         self.coes = np.zeros( ( self.n_steps, 6 ) )
@@ -188,7 +193,13 @@ class Spacecraft:
             }
         )
 
-    def plot_states( self, args = { 'show' : True} ):
+    def plot_altitudes( self, args = { 'show' : True, 'time_unit' : 'hours' } ):
+        if self.altitudes_calculated == False:
+            self.calc_altitudes()
+        
+        pt.plot_altitudes( self.times, [ self.altitudes ], args )
+
+    def plot_states( self, args = { 'show' : True, 'time_unit' : 'hours' } ):
         pt.plot_states( self.times, self.states, args )
 
     def plot_positions( self, args = { 'show' : True, 'time_unit' : 'hours' } ):
