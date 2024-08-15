@@ -179,8 +179,17 @@ class Spacecraft:
 
         pt.plot_coes( self.times[ ::step ], [ self.coes[ ::step ] ], args )
 
-    def plot_3d( self, label_name, color ):
-        pt.plot_3d( self.states[ :, :3], self.cb[ 'radius' ], plt_label = label_name, traj_color = color )
+    def plot_3d( self, args = {} ):
+        pt.plot_3d( [ self.states[ :, :3] ], 
+            args = {
+                'show'      : True,
+                'cb_radius' : self.cb[ 'radius' ],
+                'traj_lws'  : 1 
+            }
+        )
+
+    def plot_states( self, args = { 'show' : True} ):
+        pt.plot_states( self.times, self.states, args )
 
     def plot_groundtrack( self ):
         if not self.latlons_calculated:
