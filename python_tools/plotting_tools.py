@@ -360,6 +360,83 @@ def plot_states( times, states, args = {} ):
     plt.close()
 
 
+def plot_velocities( times, velocities, args = {} ):
+    _args = {
+        'figsize'           : ( 16, 8 ),
+        'dist_unit'         : 'km',
+        'time_unit'         : 'seconds',
+        'lw'                : 2,
+        'title'             : 'Velocity Profile',
+        'xlim'              : None,
+        'ylim'              : None,
+        'labelsize'         : 15,
+        'legend_fontsize'   : 20,
+        'legend_framealpha' : 0.3,
+        'legend'            : True,
+        'show'              : False,
+        'filename'          : False,
+        'dpi'               : 300
+    }
+
+    for key in args.keys():
+        _args[ key ] = args[ key ]
+
+    # Create figure and add subplot
+    fig, ax0 = plt.subplots( 1, 1, figsize = _args[ 'figsize' ] )
+
+    _args[ 'xlabel' ]     = time_handler[ _args[ 'time_unit'] ][ 'xlabel' ]
+    _args[ 'time_coeff' ] = time_handler[ _args[ 'time_unit'] ][ 'coeff' ]
+
+    times /= _args[ 'time_coeff' ]
+    vnorms = np.linalg.norm( velocities, axis = 1 )
+
+    if _args[ 'xlim' ] is None:
+        _args[ 'xlim' ] = [ 0, times[ -1 ] ]
+    
+    if _args[ 'ylim' ] is None:
+        _args[ 'ylim' ] = [ velocities.min(), vnorms.max() ]
+
+    ax0.plot(
+        times, velocities[ :, 0 ],
+        'r', linewidth = _args[ 'lw' ], label = r'$v_x$'      
+    )
+    ax0.plot(
+        times, velocities[ :, 1 ],
+        'g', linewidth = _args[ 'lw' ], label = r'$v_y$'      
+    )
+    ax0.plot(
+        times, velocities[ :, 2 ],
+        'b', linewidth = _args[ 'lw' ], label = r'$v_z$'      
+    )
+    ax0.plot(
+        times, vnorms,
+        'm', linewidth = _args[ 'lw' ], label = r'$v$'      
+    )
+
+    ax0.grid( linestyle = 'dotted' )
+    ax0.set_xlim( _args[ 'xlim' ] )
+    ax0.set_ylim( _args[ 'ylim' ] )
+    ax0.set_xlabel( _args[ 'xlabel' ], size = _args[ 'labelsize' ] )
+    ax0.set_ylabel( r'Velocity $(\dfrac{km}{s})$', size = _args[ 'labelsize' ] )
+
+    plt.suptitle( _args[ 'title' ] )
+    plt.tight_layout()
+
+    if _args[ 'legend' ]:
+        ax0.legend( fontsize = _args[ 'legend_fontsize' ],
+            loc = 'upper right', framealpha = _args[ 'legend_framealpha' ]
+        )
+    
+    if _args[ 'filename' ]:
+        plt.savefig( _args[ 'filename' ], dpi = _args[ 'dpi' ] )
+        print( 'Saved', _args[ 'filename' ] )
+
+    if _args[ 'show' ]:
+        plt.show()
+
+    plt.close()
+
+
 def plot_coes( times, coes, args = {} ):
     _args = {
         'figsize'   : ( 18, 9 ),
