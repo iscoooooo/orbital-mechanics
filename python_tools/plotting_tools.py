@@ -7,6 +7,7 @@ import csv
 import numpy                as     np 
 import matplotlib.pyplot    as     plt
 from   matplotlib           import cm
+from   planetary_data       import earth
 plt.style.use( 'dark_background' )
 
 time_handler = {
@@ -34,57 +35,164 @@ EARTH_COASTLINES = os.path.join(
 )
 
 
-def plot_3d( positions, planet_radius, plt_label = 'orbit', traj_color = 'red', figsize = ( 10, 10 ) ):
+def plot_3d( rs, args, vectors = [] ):
+    _args = {
+        'figsize'       : ( 10, 8 ),
+        'labels'        : [ '' ] * len( rs ),
+        'colors'        : COLORS[ : ],
+        'traj_lws'      : 3,
+        'dist_unit'     : 'km',
+        'cb_radius'     : earth[ 'radius' ],
+        'cb_SOI'        : None,
+        'cb_SOI_color'  : 'c',
+        'cb_SOI_alpha'  : 0.7,
+        'cb_axes'       : True,
+        'cb_axes_mag'   : 2,
+        'cb_cmap'       : cm.Blues,
+        'cb_axes_color' : 'w',
+        'axes_mag'      : 0.8,
+        'axes_custom'   : None,
+        'title'         : 'Trajectories',
+        'legend'        : True,
+        'axes_no_fill'  : True, 
+        'hide_axes'     : False,
+        'azimuth'       : False,
+        'elevation'     : False,
+        'show'          : False,
+        'filename'      : False,
+        'dpi'           : 300,
+        'vector_colors' : [ '' ] * len( vectors ),
+        'vector_labels' : [ '' ] * len( vectors ),
+        'vector_texts'  : False
+    }
 
+    for key in args.keys():
+        _args[ key ] = args[ key ] 
+ 
     # Create figure and add 3d subplot
-    fig = plt.figure( figsize = figsize )
+    fig = plt.figure( figsize = _args[ 'figsize' ] )
     ax  = fig.add_subplot( 111, projection = '3d' )
 
     # Plot central body
+    _args[ 'cb_radius' ] *= dist_handler[ _args[ 'dist_unit' ] ]
+
     _u, _v = np.mgrid[ 0:2*np.pi:100j, 0:np.pi:100j  ]
-    _x = planet_radius * np.cos( _u ) * np.sin( _v ) 
-    _y = planet_radius * np.sin( _u ) * np.sin( _v ) 
-    _z = planet_radius * np.cos( _v )
+    _x = _args[ 'cb_radius' ] * np.cos( _u ) * np.sin( _v ) 
+    _y = _args[ 'cb_radius' ] * np.sin( _u ) * np.sin( _v ) 
+    _z = _args[ 'cb_radius' ] * np.cos( _v )
 
     ax.plot_surface( _x, _y, _z, rstride = 5, cstride = 5, cmap = cm.Blues, zorder = 0 )
 
-    # Plot trajectory 
-    ax.plot(
-        positions[ :, 0 ],
-        positions[ :, 1 ],
-        positions[ :, 2 ],
-        label = plt_label,
-        color = traj_color
-    )
+    # Plot trajectories
 
-    # Plot the x, y, z vectors
-    l = planet_radius * 2
+    max_val = 0
+    n       = 0
 
-    x, y, z = [ [ 0, 0, 0 ], [ 0, 0, 0 ], [ 0, 0, 0 ] ]
-    u, v, w = [ [ l, 0, 0 ], [ 0, l, 0 ], [ 0, 0, l ] ]
+    for r in rs:
+        _r = r.copy() * dist_handler[ _args[ 'dist_unit' ] ] 
 
-    ax.quiver( x, y, z, u, v, w, color = 'k')
+        ax.plot(
+            _r[ :, 0 ], _r[ :, 1 ], _r[ :, 2 ],
+            color = _args[ 'colors' ][ n ],
+            label = _args[ 'labels' ][ n ],
+            linewidth = _args[ 'traj_lws' ],
+            zorder = 10
+        )
+        ax.plot(
+            [ _r[ 0, 0 ] ], [ _r[ 0, 1 ] ], [ _r[ 0, 2 ]] ,
+            'o', color = _args[ 'colors' ][ n ]
+        )
+
+        # consider the orbit groundtrack on the planet in the future
+
+        max_val = max( [ _r.max(), max_val ] )
+        n += 1
+
+    # Plot vectors that are passed in as a dictionary type
+    for vector in vectors:
+        ax.quiver( 
+            0, 0, 0,
+            vector[ 'r' ][ 0 ], vector[ 'r' ][ 1 ], vector[ 'r' ][ 2 ],
+            color = vector[ 'color' ], label = vector[ 'label' ]
+        )
+
+        if _args[ 'vector_texts' ]:
+            vector[ 'r' ] *= _args[ 'vector_texts_scale' ]
+            ax.text( 
+                vector[ 'r' ][ 0 ], vector[ 'r' ][ 1 ], vector[ 'r' ][ 2 ],
+                label = vector[ 'label' ],
+                color = vector[ 'color' ],
+                length=1, scale=20, pivot='tail'
+            )
+    
+    if _args[ 'cb_SOI' ] is not None:
+        _args[ 'cb_SOI' ] *= dist_handler[ _args[ 'dist_unit' ] ]
+        
+        # Rescaling of the SOI relative to central body radius, for visual purposes
+        _x = _args[ 'cb_SOI' ] / _args[ 'cb_radius' ]
+        _y = _args[ 'cb_SOI' ] / _args[ 'cb_radius' ]
+        _z = _args[ 'cb_SOI' ] / _args[ 'cb_radius' ]
+
+        ax.plot_wireframe( _x, _y, _z,
+			color = _args[ 'cb_SOI_color' ],
+			alpha = _args[ 'cb_SOI_alpha' ]
+        )
+
+    if _args[ 'cb_axes' ]:
+        l  = _args[ 'cb_radius' ] * _args[ 'cb_axes_mag' ]
+
+        x, y, z = [ [ 0, 0, 0 ], [ 0, 0, 0 ], [ 0, 0, 0 ] ]
+        u, v, w = [ [ l, 0, 0 ], [ 0, l, 0 ], [ 0, 0, l ] ]
+
+        ax.quiver( x, y, z, u, v, w,
+            color = _args[ 'cb_axes_color' ]          
+        )
+
+    # Set axes labels
+    xlabel = 'X (%s)' % _args[ 'dist_unit' ] 
+    ylabel = 'Y (%s)' % _args[ 'dist_unit' ] 
+    zlabel = 'Z (%s)' % _args[ 'dist_unit' ]
+
+    ax.set_xlabel( xlabel )
+    ax.set_ylabel( ylabel )
+    ax.set_zlabel( zlabel )
 
     # Set axes limits
-    max_val = np.max( np.abs( positions ) )
+    if _args[ 'axes_custom' ] is not None:
+        max_val = _args[ 'axes_custom' ]
+    else:
+        max_val *= _args[ 'axes_mag' ]
 
     ax.set_xlim( [ -max_val, max_val ] )
     ax.set_ylim( [ -max_val, max_val ] )
     ax.set_zlim( [ -max_val, max_val ] )
 
-    # Set axes labels
-    ax.set_xlabel( 'X $(km)$' )
-    ax.set_ylabel( 'Y $(km)$' )
-    ax.set_zlabel( 'Z $(km)$' )
-
     # Set aspect ratio
     ax.set_box_aspect( [ 1, 1, 1 ] )
     ax.set_aspect( 'auto' )
 
-    if plt_label:
-        ax.legend()
+    if _args[ 'azimuth' ] is not False:
+        ax.view_init( elev = _args[ 'elevation' ], azim = _args[ 'azimuth'] )
+    
+    if _args[ 'axes_no_fill' ]:
+        ax.xaxis.pane.fill = False
+        ax.yaxis.pane.fill = False
+        ax.zaxis.pane.fill = False
+    
+    if _args[ 'hide_axes' ]:
+        ax.set_axis_off()
 
-    plt.show()
+    if _args[ 'legend' ]:
+        plt.legend()
+    
+    if _args[ 'filename' ]:
+        plt.savefig( _args[ 'filename' ], dpi = _args[ 'dpi' ] )
+        print( 'Saved', _args[ 'filename' ] )
+
+    if _args[ 'show' ]:
+        plt.show()
+    
+    plt.close()
 
 
 def plot_groundtracks( coords ):
@@ -101,7 +209,7 @@ def plot_groundtracks( coords ):
             coast_latitudes.append(latitude)
 
     # Set figure size
-    fig = plt.figure(figsize=(18, 9))
+    fig = plt.figure( figsize=(18, 9) )
     ax = fig.add_subplot()
 
     # Plot groundtracks with wrap-around handling
@@ -147,6 +255,110 @@ def plot_groundtracks( coords ):
 
     plt.legend()
     plt.show()
+
+def plot_states( times, states, args = {} ):
+    _args = {
+        'figsize'   : ( 16, 8 ),
+        'dist_unit' : 'km',
+        'time_unit' : 'hours',
+        'lw'        : 2.5,
+        'title'     : 'Spacecraft States',
+        'xlim'      : None,
+        'r_ylim'    : None,
+        'v_ylim'    : None,
+        'legend'    : True,
+        'show'      : True,
+        'filename'  : False,
+        'dpi'       : 300
+    }
+
+    for key in args.keys():
+        _args[ key ] = args[ key ]
+
+    # Create figure and add subplots
+    fig, ( ax0, ax1 ) = plt.subplots( 2, 1, figsize = _args[ 'figsize' ] )
+
+    _args[ 'xlabel' ]     = time_handler[ _args[ 'time_unit' ] ][ 'xlabel' ]
+    _args[ 'time_coeff' ] = time_handler[ _args[ 'time_unit' ] ][ 'coeff'  ]
+
+    times  /= _args[ 'time_coeff' ]
+    rnorms  = np.linalg.norm( states[ :, :3 ], axis = 1 )
+    vnorms  = np.linalg.norm( states[ :, 3: ], axis = 1 )
+
+    if _args[ 'xlim' ] is None:
+        _args[ 'xlim' ] = [ 0, times[ -1 ] ]
+
+    if _args[ 'r_ylim' ] is None:
+        _args[ 'r_ylim' ] = [ states[ :, :3 ].min(), rnorms.max() ]
+    
+    if _args[ 'v_ylim' ] is None:
+        _args[ 'v_ylim' ] = [ states[ :, 3: ].min(), vnorms.max() ]
+
+    
+    ''' Positions '''
+    ax0.plot(
+        times, states[ :, 0 ],
+        'r', label = r'$r_x$', linewidth = _args[ 'lw' ]
+    )
+    ax0.plot(
+        times, states[ :, 1 ],
+        'g', label = r'$r_y$', linewidth = _args[ 'lw' ]
+    )
+    ax0.plot(
+        times, states[ :, 2 ],
+        'b', label = r'$r_z$', linewidth = _args[ 'lw' ]
+    )
+    ax0.plot(
+        times, rnorms,
+        'm', label = r'$r$', linewidth = _args[ 'lw' ]
+    )
+
+    ax0.grid( linestyle = 'dotted' )
+    ax0.set_xlim( _args[ 'xlim' ] )
+    ax0.set_ylim( _args[ 'r_ylim' ] )
+    ax0.set_ylabel( r'Position $(km)$')
+
+    ''' Velocities '''
+    ax1.plot(
+        times, states[ :, 3 ],
+        'r', label = r'$v_x$', linewidth = _args[ 'lw' ]
+    )
+    ax1.plot(
+        times, states[ :, 4 ],
+        'g', label = r'$v_y$', linewidth = _args[ 'lw' ]
+    )
+    ax1.plot(
+        times, states[ :, 5 ],
+        'b', label = r'$v_z$', linewidth = _args[ 'lw' ]
+    )
+    ax1.plot(
+        times, vnorms,
+        'm', label = r'$v$', linewidth = _args[ 'lw' ]
+    )
+
+    ax1.grid( linestyle = 'dotted' )
+    ax1.set_xlim( _args[ 'xlim' ] )
+    ax1.set_ylim( _args[ 'v_ylim' ] )
+    ax1.set_ylabel( r'Velocity $(\dfrac{km}{s})$')
+    ax1.set_xlabel( _args[ 'xlabel' ] )
+
+
+    plt.suptitle( _args[ 'title' ] )
+    plt.tight_layout
+
+    if _args[ 'legend' ]:
+        ax0.legend()
+        ax1.legend()
+
+    if _args[ 'filename' ]:
+        plt.savefig( _args[ 'filename' ], dpi = _args[ 'dpi' ] )
+        print( 'Saved', _args[ 'filename' ] )
+
+    if _args[ 'show' ]:
+        plt.show()
+
+    plt.close()
+
 
 def plot_coes( times, coes, args = {} ):
     _args = {
