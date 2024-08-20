@@ -24,12 +24,18 @@ This project is currently under active development. Future updates will include 
 
 Stay tuned for these and other enhancements!
 
+## Example Plots
+Below are example plots that you can generate with this tool:
+![molniya_3d](docs/molniya_3d.png)
+![molniya_groundtrack](docs/molniya_groundtrack.png)
+![molniya_coes](docs/molniya_COEs.png)
+
 ## Getting Started
-### Prerequisites
-- Python 3.x
-- Required Python libraries: `numpy`, `matplotlib`, `scipy`, etc.
+### Dependencies
+- [Python 3.0+](https://www.python.org/)
+- [NumPy](https://www.numpy.org/)
+- [Matplotlib](https://matplotlib.org/stable/index.html)
+- [SciPy](https://scipy.org/)
 
 ### Installation
-Clone the repository to your local machine:
-```bash
-git clone https://github.com/yourusername/Orbital-Mechanics.git
+(coming soon)
