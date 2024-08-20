@@ -184,12 +184,13 @@ class Spacecraft:
 
         pt.plot_coes( self.times[ ::step ], [ self.coes[ ::step ] ], args )
 
-    def plot_3d( self, args = {} ):
+    def plot_3d( self, label = ['Orbit'], args = {} ):
         pt.plot_3d( [ self.states[ :, :3] ], 
             args = {
                 'show'      : True,
                 'cb_radius' : self.cb[ 'radius' ],
-                'traj_lws'  : 1 
+                'traj_lws'  : 1,
+                'labels'    : label
             }
         )
 
