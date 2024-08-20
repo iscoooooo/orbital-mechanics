@@ -1,7 +1,7 @@
 # Orbital-Mechanics
 
 ## Overview
-This project provides a suite of tools for simulating, analyzing, and visualizing spacecraft trajectories. It is designed for aerospace engineers, researchers, and students who want to study orbital mechanics and spacecraft motion.
+This project provides a suite of tools for simulating, analyzing, and visualizing spacecraft trajectories. It is designed for aerospace engineers, and students who want to study orbital mechanics and spacecraft motion.
 
 ## Features
 - **Spacecraft Class**: The core of the project, this class allows users to create spacecraft objects with either:
